@@ -1,0 +1,47 @@
+
+const faker = require('faker');
+
+const subjects = [];
+for (let i = 0; i < 10; i++) {
+  subjects.push({
+    subject: faker.lorem.word(),
+    reasoning: faker.lorem.sentence(),
+    riskArea: faker.lorem.word(),
+    executionYear: faker.date.past().getFullYear()
+  });
+}
+
+console.log(subjects);
+
+
+const sqlite3 = require('sqlite3').verbose();
+const db = new sqlite3.Database(':memory:');
+
+db.serialize(function() {
+  db.run(`
+    CREATE TABLE subjects (
+      id INTEGER PRIMARY KEY,
+      subject TEXT,
+      reasoning TEXT,
+      risk_area TEXT,
+      execution_year INTEGER
+    )
+  `);
+
+  const stmt = db.prepare(`
+    INSERT INTO subjects (subject, reasoning, risk_area, execution_year)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  for (let i = 0; i < 10; i++) {
+    const subject = faker.lorem.word();
+    const reasoning = faker.lorem.sentence();
+    const riskArea = faker.lorem.word();
+    const executionYear = faker.date.past().getFullYear();
+    stmt.run(subject, reasoning, riskArea, executionYear);
+  }
+
+  stmt.finalize();
+});
+
+module.exports = db;
